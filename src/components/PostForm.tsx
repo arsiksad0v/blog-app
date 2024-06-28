@@ -1,39 +1,32 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { db } from '../firebase';
-import { doc, getDoc, addDoc, updateDoc, collection } from 'firebase/firestore';
+import { collection, addDoc, doc, updateDoc } from 'firebase/firestore';
 
-function PostForm() {
-  const [title, setTitle] = useState('');
-  const [content, setContent] = useState('');
+interface PostFormProps {
+  isEdit?: boolean;
+  initialValues?: { id?: string; title: string; content: string };
+}
+
+function PostForm({ isEdit = false, initialValues = { title: '', content: '' } }: PostFormProps) {
+  const [title, setTitle] = useState(initialValues.title);
+  const [content, setContent] = useState(initialValues.content);
   const navigate = useNavigate();
-  const { id } = useParams<{ id: string }>();
-  const isEdit = !!id;
 
   useEffect(() => {
     if (isEdit) {
-      const fetchPost = async () => {
-        const docRef = doc(db, 'posts', id);
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-          const post = docSnap.data();
-          setTitle(post.title);
-          setContent(post.content);
-        } else {
-          console.log('No such document!');
-        }
-      };
-      fetchPost();
+      setTitle(initialValues.title);
+      setContent(initialValues.content);
     }
-  }, [id, isEdit]);
+  }, [initialValues, isEdit]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (isEdit) {
-      const docRef = doc(db, 'posts', id);
-      await updateDoc(docRef, { title, content });
+    if (isEdit && initialValues.id) {
+      const postDocRef = doc(db, 'posts', initialValues.id);
+      await updateDoc(postDocRef, { title, content });
     } else {
-      await addDoc(collection(db, 'posts'), { title, content, createdAt: new Date() });
+      await addDoc(collection(db, 'posts'), { title, content });
     }
     navigate('/');
   };
@@ -54,3 +47,6 @@ function PostForm() {
 }
 
 export default PostForm;
+
+
+

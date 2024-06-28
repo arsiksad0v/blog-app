@@ -3,14 +3,20 @@ import { Link } from 'react-router-dom';
 import { db } from '../firebase';
 import { collection, getDocs } from 'firebase/firestore';
 
+interface Post {
+  id: string;
+  title: string;
+  content: string;
+}
+
 function Home() {
-  const [posts, setPosts] = useState([]);
+  const [posts, setPosts] = useState<Post[]>([]);
 
   useEffect(() => {
     const fetchPosts = async () => {
       const postsCollection = collection(db, 'posts');
       const postSnapshot = await getDocs(postsCollection);
-      const postList = postSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const postList = postSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Post[];
       setPosts(postList);
     };
 
@@ -34,3 +40,4 @@ function Home() {
 }
 
 export default Home;
+
